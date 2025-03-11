@@ -14,11 +14,20 @@ Model::Model(const char* file)
 	traverseNode(0);
 }
 
-void Model::Draw(Shader& shader, Camera& camera)
+void Model::Draw
+(
+	Shader& shader, 
+	Camera& camera,
+	glm::vec3 translation,
+	glm::quat rotation,
+	glm::vec3 scale
+)
 {
 	// Go over all meshes and draw each one
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
+		// Use the existing matrix from matricesMeshes
+		// The default parameters (identity transformations) won't change the model
 		meshes[i].Mesh::Draw(shader, camera, matricesMeshes[i]);
 	}
 }
