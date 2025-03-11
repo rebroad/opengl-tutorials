@@ -1,7 +1,7 @@
 #include<iostream>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
-
+#include<cmath>
 #include"shaderClass.h"
 #include"VAO.h"
 #include"VBO.h"
