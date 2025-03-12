@@ -84,6 +84,11 @@ int main()
 	// Original code from the tutorial
 	// Model model("models/bunny/scene.gltf");
 
+	// Variables to track frame time
+	float lastFrame = 0.0f;
+	float currentFrame = 0.0f;
+	float deltaTime = 0.0f;
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -93,7 +98,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Handles camera inputs
-		camera.Inputs(window);
+		camera.Inputs(window, deltaTime);
 		// Updates and exports the camera matrix to the Vertex Shader
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
