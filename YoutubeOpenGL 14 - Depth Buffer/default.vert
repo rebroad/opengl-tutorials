@@ -32,14 +32,14 @@ uniform mat4 scale;
 
 void main()
 {
-	// calculates current position
-	crntPos = vec3(model * translation * rotation * scale * vec4(aPos, 1.0f));
-	// Assigns the normal from the Vertex Data to "Normal"
-	Normal = aNormal;
+	// calculates current position in world space using just the model matrix
+	crntPos = vec3(model * vec4(aPos, 1.0f));
+	// Transform the normal with the model matrix (excluding translation)
+	Normal = mat3(transpose(inverse(model))) * aNormal;
 	// Assigns the colors from the Vertex Data to "color"
 	color = aColor;
-	// Assigns the texture coordinates from the Vertex Data to "texCoord"
-	texCoord = mat2(0.0, -1.0, 1.0, 0.0) * aTex;
+	// Assigns the texture coordinates directly from vertex data
+	texCoord = aTex;
 	
 	// Outputs the positions/coordinates of all vertices
 	gl_Position = camMatrix * vec4(crntPos, 1.0);
