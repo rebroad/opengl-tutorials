@@ -48,15 +48,41 @@ int main()
 	// Generates Shader object using shaders default.vert and default.frag
 	Shader shaderProgram("default.vert", "default.frag");
 
+	// Check if shader program is valid
+	GLint isLinked = 0;
+	glGetProgramiv(shaderProgram.ID, GL_LINK_STATUS, &isLinked);
+	if (isLinked == GL_FALSE) {
+		GLint maxLength = 0;
+		glGetProgramiv(shaderProgram.ID, GL_INFO_LOG_LENGTH, &maxLength);
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(shaderProgram.ID, maxLength, &maxLength, &infoLog[0]);
+		std::cout << "Shader linking error: " << std::string(infoLog.begin(), infoLog.end()) << std::endl;
+		return -1;
+	}
+
 	// Take care of all the light related things
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 lightPos = glm::vec3(2.0f, 4.0f, -1.0f);
+	float lightMovementRadius = 5.0f;  // Increased radius
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPos);
 
 	shaderProgram.Activate();
-	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	
+	// Check for uniform location errors
+	GLint lightColorLoc = glGetUniformLocation(shaderProgram.ID, "lightColor");
+	GLint lightPosLoc = glGetUniformLocation(shaderProgram.ID, "lightPos");
+	GLint camPosLoc = glGetUniformLocation(shaderProgram.ID, "camPos");
+	
+	if (lightColorLoc == -1 || lightPosLoc == -1 || camPosLoc == -1) {
+		std::cout << "Warning: Failed to locate uniform(s): " 
+			<< (lightColorLoc == -1 ? "lightColor " : "") 
+			<< (lightPosLoc == -1 ? "lightPos " : "") 
+			<< (camPosLoc == -1 ? "camPos" : "") << std::endl;
+	}
+	
+	glUniform4f(lightColorLoc, lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	// Initial light position set - will be updated in the loop
 
 
 
@@ -98,6 +124,17 @@ int main()
 		camera.Inputs(window);
 		// Updates and exports the camera matrix to the Vertex Shader
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
+
+		// Set camera position uniform
+		glm::vec3 camPosition = camera.Position;
+		glUniform3f(camPosLoc, camPosition.x, camPosition.y, camPosition.z);
+		
+		// Make the light move in a circle
+	float timeValue = glfwGetTime();
+	lightPos.x = cos(timeValue) * lightMovementRadius;
+	lightPos.z = sin(timeValue) * lightMovementRadius;
+	lightPos.y = 4.0f;  // Keep the light elevated
+	glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 
 		// Draw models
 		ground.Draw(shaderProgram, camera);
