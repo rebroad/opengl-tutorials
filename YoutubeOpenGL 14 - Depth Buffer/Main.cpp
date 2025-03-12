@@ -4,6 +4,7 @@ namespace fs = std::filesystem;
 //------------------------------
 
 #include"Model.h"
+#include <glm/gtc/type_ptr.hpp>
 
 
 const unsigned int width = 800;
@@ -66,6 +67,70 @@ int main()
 	float lightMovementRadius = 5.0f;  // Increased radius
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPos);
+
+	// Vertices for a cube to represent the light source
+	float lightVertices[] = {
+		// Position coordinates
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f
+	};
+
+	// Indices for the cube vertices
+	unsigned int lightIndices[] = {
+		0, 1, 2,
+		2, 3, 0,
+		0, 4, 7,
+		7, 3, 0,
+		3, 7, 6,
+		6, 2, 3,
+		2, 6, 5,
+		5, 1, 2,
+		1, 5, 4,
+		4, 0, 1,
+		4, 5, 6,
+		6, 7, 4
+	};
+
+	// Create VAO, VBO, and EBO for the light cube
+	unsigned int lightVAO, lightVBO, lightEBO;
+	glGenVertexArrays(1, &lightVAO);
+	glGenBuffers(1, &lightVBO);
+	glGenBuffers(1, &lightEBO);
+
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(lightVertices), lightVertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lightEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(lightIndices), lightIndices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// Create a basic shader for the light cube
+	Shader lightShader("light.vert", "light.frag");
+	
+	if (!lightShader.ID) {
+		std::cout << "Failed to create light shader program!" << std::endl;
+		return -1;
+	}
+
+	// Check if light shader program is valid
+	GLint isLightShaderLinked = 0;
+	glGetProgramiv(lightShader.ID, GL_LINK_STATUS, &isLightShaderLinked);
+	if (isLightShaderLinked == GL_FALSE) {
+		GLint maxLength = 0;
+		glGetProgramiv(lightShader.ID, GL_INFO_LOG_LENGTH, &maxLength);
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(lightShader.ID, maxLength, &maxLength, &infoLog[0]);
+		std::cout << "Light shader linking error: " << std::string(infoLog.begin(), infoLog.end()) << std::endl;
+		return -1;
+	}
 
 	shaderProgram.Activate();
 	
@@ -139,6 +204,31 @@ int main()
 		// Draw models
 		ground.Draw(shaderProgram, camera);
 		trees.Draw(shaderProgram, camera);
+
+		// Draw the light cube
+		lightShader.Activate();
+		
+		// Save current OpenGL state
+		GLboolean depthTest;
+		glGetBooleanv(GL_DEPTH_TEST, &depthTest);
+		
+		// Ensure depth testing is enabled
+		glEnable(GL_DEPTH_TEST);
+		
+		// Update matrices
+		lightModel = glm::mat4(1.0f);
+		lightModel = glm::translate(lightModel, lightPos);
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(lightModel));
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "camMatrix"), 1, GL_FALSE, glm::value_ptr(camera.cameraMatrix));
+		
+		// Draw the light cube
+		glBindVertexArray(lightVAO);
+		glDrawElements(GL_TRIANGLES, sizeof(lightIndices)/sizeof(int), GL_UNSIGNED_INT, 0);
+		
+		// Restore previous depth test state
+		if (!depthTest) {
+			glDisable(GL_DEPTH_TEST);
+		}
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
