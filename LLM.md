@@ -105,6 +105,17 @@ This repository contains a series of OpenGL tutorials, focusing on teaching vari
   - View matrix calculation
   - Camera movement (WASD controls)
   - Mouse input for camera rotation
+- **Controls**:
+  - Keyboard:
+    - W: Move forward
+    - A: Move left
+    - S: Move backward
+    - D: Move right
+    - SPACE: Move up
+    - LEFT CONTROL: Move down
+    - LEFT SHIFT (hold): Increase movement speed
+  - Mouse:
+    - Hold LEFT MOUSE BUTTON: Enter camera rotation mode (mouse movements rotate the camera)
 
 ### Tutorial 9 - Lighting
 - **Status**: ✅ Compiled successfully
@@ -225,3 +236,4 @@ make
 - **Stencil Buffer**: Fixed the naming conflict in Tutorial 15's Mesh class (renamed VAO to meshVAO) to maintain consistency with previous fixes and ensure successful compilation of the stencil buffer functionality.
 - **Face Culling & FPS Counter**: Fixed the naming conflict in Tutorial 16's Mesh class (renamed VAO to meshVAO) to maintain consistency with previous fixes and ensure successful compilation of the face culling and FPS counter functionality.
 - **Transparency & Blending**: Fixed the naming conflict in Tutorial 17's Mesh class (renamed VAO to meshVAO) to maintain consistency with previous fixes. Also fixed a function signature mismatch in Model.cpp where the Draw function implementation was missing parameters (translation, rotation, and scale) that were declared in the Model.h header.
+- **Keyboard Movement Speed in Tutorial 8**: The keyboard movement speed (0.1 units per frame, 0.4 units with SHIFT) is too fast on modern hardware with high frame rates. This makes navigation difficult as pressing the WASD keys causes the camera to move too quickly, while the mouse-based rotation works fine. A potential solution would be to implement frame-rate independent movement by scaling keyboard movement speed with delta time between frames.
