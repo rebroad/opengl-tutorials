@@ -32,12 +32,12 @@ vec4 pointLight()
 
 	// intensity of light with respect to distance
 	float dist = length(lightVec);
-	float a = 3.0;
-	float b = 0.7;
+	float a = 0.5;  // Reduced from 1.0
+	float b = 0.2;  // Reduced from 0.3
 	float inten = 1.0f / (a * dist * dist + b * dist + 1.0f);
 
 	// ambient lighting
-	float ambient = 0.20f;
+	float ambient = 0.35f;  // Increased from 0.25f
 
 	// diffuse lighting
 	vec3 normal = normalize(Normal);
@@ -45,10 +45,10 @@ vec4 pointLight()
 	float diffuse = max(dot(normal, lightDirection), 0.0f);
 
 	// specular lighting
-	float specularLight = 0.50f;
+	float specularLight = 0.80f;  // Increased from 0.50f
 	vec3 viewDirection = normalize(camPos - crntPos);
 	vec3 reflectionDirection = reflect(-lightDirection, normal);
-	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
+	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 8);  // Changed from 16
 	float specular = specAmount * specularLight;
 
 	return (texture(diffuse0, texCoord) * (diffuse * inten + ambient) + texture(specular0, texCoord).r * specular * inten) * lightColor;
@@ -120,5 +120,10 @@ void main()
 {
 	// outputs final color
 	float depth = logisticDepth(gl_FragCoord.z, 0.5f, 5.0f);
-	FragColor = pointLight() * (1.0f - depth) + vec4(depth * vec3(0.85f, 0.85f, 0.90f), 1.0f);
+	vec4 lighting = pointLight();
+	vec4 fogColor = vec4(0.85f, 0.85f, 0.90f, 1.0f);
+	
+	// Blend fog more subtly
+	float fogFactor = depth * 0.8;  // Reduce fog intensity
+	FragColor = mix(lighting, fogColor, fogFactor);
 }
